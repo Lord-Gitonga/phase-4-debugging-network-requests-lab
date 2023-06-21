@@ -1,24 +1,29 @@
 class ToysController < ApplicationController
   wrap_parameters format: []
-
+rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
   def index
     toys = Toy.all
     render json: toys
   end
 
   def create
-    toy = Toys.create(toy_params)
+    toy = Toy.create(toy_params)
     render json: toy, status: :created
   end
 
+  def show
+    toys = toy_find
+    render json: toys
+  end
+
   def update
-    toy = Toy.find_by(id: params[:id])
-    toy.update(toy_params)
+    toys = toy_find
+    toys.update(toy_params)
   end
 
   def destroy
-    toy = Toy.find_by(id: params[:id])
-    toy.destroy
+    toys = toy_find
+    toys.destroy
     head :no_content
   end
 
@@ -28,4 +33,11 @@ class ToysController < ApplicationController
     params.permit(:name, :image, :likes)
   end
 
+  def toy_find
+    Toy.find(params[:id])
+  end
+
+  def render_not_found
+    render json: {error: "Toy not found"}, status: :not_found
+  end
 end
